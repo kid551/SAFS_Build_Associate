@@ -1,0 +1,896 @@
+
+<!--                                                          -->
+<!-- 2014.08.15  CANAGL  Initial Release                      -->
+<!-- 2014.08.19  CANAGL  SAFS Include for build.xml Include   -->
+<!-- 2014.10.21  DHARMESH4  Add safsupdate.jar as third party -->
+<!--                                                          -->
+<project name="safs_build" basedir="." >
+
+  <!--                                              -->
+  <!--              cleansource                     -->
+  <!-- Delete all source contents prior to checkout -->
+  <!--                                              -->
+  <target name="cleansource" >
+    <delete dir="${source}" />
+  </target>
+  
+  
+  <!--                                               -->
+  <!--              cleanclasses                     -->
+  <!-- Delete all classes output dirs prior to build -->
+  <!--                                               -->
+  <target name="cleanclasses" >
+    <delete dir="${classes}" />
+  </target>
+  
+  
+  <!--       SOURCEFORGE CVS NO LONGER USED           -->
+  <!--              cvscheckout                       -->
+  <!-- Get/Update all sourcecode from SourceForge CVS -->
+  <!--                                                -->
+  <!-- Moved source/TCAFS to git.clone.tcafs          -->
+  <!--                                                -->
+  <!-- target name="_internal.checkout" depends="_git.checkout" >
+    <cvs command="get -r MAIN" 
+         cvsroot="${cvsroot}"
+         package="source/android
+                  source/common/com
+		  source/common/eclipse
+		  source/common/install
+		  source/common/keywords
+		  source/common/META-INF
+                  source/common/org
+                  source/common/org/safs
+                  source/common/org/w3c
+                  source/common/STAF-INF
+                  source/rrafs/doc"    
+    />    
+    
+    <mkdir dir="${safssource}/resources"/>
+    <move todir="${safssource}/resources" preservelastmodified="true" >
+        <fileset dir="${safssource}/org" includes="TestScriptHelper.java,TestScript.rft*"/>
+    </move>
+    <copy todir="${safssource}/resources" preservelastmodified="true" >
+        <fileset dir="${safssource}/META-INF" includes="DatastoreDefinition.rftdsd"/></copy>
+    <move todir="${safssource}" preservelastmodified="true" >
+        <fileset dir="${safssource}/org" includes="TestScript.java"/></move>
+    <copy todir="${safssource}/org/safs/jvmagent"  preservelastmodified="true" >
+        <fileset dir="${safssource}/org/safs/jvmagent" includes="*.dat"/></copy>
+    <copy todir="${safssource}"  preservelastmodified="true" >
+        <fileset dir="${safssource}/org/safs" includes="*.dat,safsjvmagent.properties"/></copy>
+    <move todir="${safssource}"  preservelastmodified="true" >
+        <fileset dir="${safssource}/org/safs" includes="**ResourceBundle*.properties,
+                                                        *ResourceBundle*.properties.txt"/></move>
+  </target 
+  -->
+
+
+  <!--                                                -->
+  <!--              _git.checkout                     -->
+  <!--   renamed    _internal.checkout                -->
+  <!--                                                -->
+  <!-- Get/Update all sourcecode from GitHUb          -->
+  <!--                                                -->
+  <target name="_internal.checkout" depends="git.clone.tcafs,
+                                               git.clone.keywords,
+                                               git.clone.metainf,
+                                               git.clone.stafinf,
+                                               git.clone.core,
+                                               git.clone.seplus,
+                                               git.clone.seplus.features,
+                                               git.clone.droid.remotecontrol,
+                                               git.clone.droid.engine,
+                                               git.clone.droid.messenger,
+                                             git.clone.droid.sample">
+  </target>
+  <target name="_copy.files">
+  
+     <mkdir dir="${rrafssource}"/>
+      <mkdir dir="${safssource}"/>
+      <mkdir dir="${droidengine}"/>
+      <mkdir dir="${droidmessenger}"/>
+      <mkdir dir="${droidsample}"/>
+      <mkdir dir="${droidprojectlibs}"/>
+      <mkdir dir="${eclipse-plugin}"/>
+      <mkdir dir="${eclipse-feature}"/>
+      
+      <copy todir="${source}/rrafs" preservelastmodified="true" >
+          <fileset dir="${git.wdir.core}/rrafs/" /></copy>
+      <copy todir="${safssource}" preservelastmodified="true" >
+          <fileset dir="${git.wdir.core}/src/" /></copy>
+      
+      <!-- move _default_ to root of safssource -->
+      <copy todir="${safssource}"  preservelastmodified="true" >
+          <fileset dir="${safssource}/_default_/" /></copy>
+          
+      <copy todir="${safssource}/org/safs"  preservelastmodified="true" >
+          <fileset dir="${safssource}" includes="*.dat,safsjvmagent.properties"/></copy>
+      <delete dir="${safssource}/_default_" />
+      <!-- end of move _default_ to root of safssource -->
+      
+      <copy todir="${safssource}" preservelastmodified="true" >
+          <fileset dir="${git.wdir.droid.remotecontrol}/src/" /></copy>
+      <copy todir="${droidprojectlibs}" preservelastmodified="true" >
+          <fileset dir="${git.wdir.droid.remotecontrol}/libs/" /></copy>
+      <copy todir="${droidengine}" preservelastmodified="true" >
+          <fileset dir="${git.wdir.droid.engine}/" /></copy>
+      <copy todir="${droidmessenger}" preservelastmodified="true" >
+          <fileset dir="${git.wdir.droid.messenger}/" /></copy>
+      <copy todir="${droidsample}" preservelastmodified="true" >
+          <fileset dir="${git.wdir.droid.sample}/" /></copy>
+  
+       <copy todir="${metainf}" preservelastmodified="true" >
+          <fileset dir="${git.wdir.metainf}" /></copy>
+       <copy todir="${stafinf}" preservelastmodified="true" >
+        <fileset dir="${git.wdir.stafinf}" /></copy>
+       <copy todir="${tcafssource}" preservelastmodified="true" >
+        <fileset dir="${git.wdir.tcafs}" /></copy>
+       <copy todir="${keywords}" preservelastmodified="true" >
+        <fileset dir="${git.wdir.keywords}" /></copy>
+       <copy todir="${eclipse-plugin}" preservelastmodified="true" >
+        <fileset dir="${git.wdir.seplus}/" /></copy>
+       <copy todir="${eclipse-feature}" preservelastmodified="true" >
+        <fileset dir="${git.wdir.seplus.features}/" /></copy>
+  </target>
+
+
+  <!--                                                -->
+  <!--               cvs.checkout                     -->
+  <!--   Get/Update all Source and 3rd party jars     -->
+  <!--                                                -->
+  <target name="cvs.checkout" depends="cleansource,_internal.checkout,_copy.files,ftpdependencies" />
+  
+  
+  <!--                                                -->
+  <!--              ftpdependencies                   -->
+  <!--   Get/Update all 3rd party jars FTP Server     -->
+  <!--                                                -->
+  <target name="ftpdependencies" >
+      <ftp action="get" remotedir="${cukeslibs}" server="${ftpserver}" userid="${ftpuserid}" password="${ftppasswrd}" preservelastmodified="true"  >
+          <fileset dir="${cukeslibs}" excludes="*.pom,*-javadoc.jar"/></ftp>
+      <ftp action="get" remotedir="${rftlibs}" server="${ftpserver}" userid="${ftpuserid}" password="${ftppasswrd}"  preservelastmodified="true" >
+          <fileset dir="${rftlibs}"/> </ftp>
+      <ftp action="get" remotedir="${droidlibs}" server="${ftpserver}" userid="${ftpuserid}" password="${ftppasswrd}"  preservelastmodified="true" >
+          <fileset dir="${droidlibs}"/></ftp>
+      <ftp action="get" remotedir="${staflibs}" server="${ftpserver}" userid="${ftpuserid}" password="${ftppasswrd}"  preservelastmodified="true" >
+          <fileset dir="${staflibs}"/></ftp>
+      <ftp action="get" remotedir="${seleniumlibs}" server="${ftpserver}" userid="${ftpuserid}" password="${ftppasswrd}"  preservelastmodified="true" >
+          <fileset dir="${seleniumlibs}" includes="*.exe,*.jar,*.zip" /></ftp>
+      <ftp action="get" remotedir="${safslibs}" server="${ftpserver}" userid="${ftpuserid}" password="${ftppasswrd}"  preservelastmodified="true" >
+          <fileset dir="${safslibs}" includes="*.exe,*.jar,*.zip" /></ftp>
+  </target>
+  
+  
+  <!--                                              -->
+  <!--              safscompile                     -->
+  <!-- Compile/Build ALL sourcecode for a SAFS dist -->
+  <!--                                              -->
+  <target name="safs.compile" depends="cleanclasses" >
+
+    <!--                                             -->
+    <!--              safs.classpath                 -->
+    <!-- 3rd Party Libraries to be included for SAFS -->
+    <!--                                             -->
+    <path id="safs.classpath" >
+        <fileset dir="${installlibs}"    includes="*.jar,*.zip"        />
+    	<fileset dir="${libs}"  includes="**/*.jar **/*.zip"  />
+    </path>
+
+    <property name="safs.classpath"  refid="safs.classpath" />
+  
+    <mkdir dir="${classes}"/>
+    <copy todir="${classes}" preservelastmodified="true" >
+        <fileset dir="${safssource}" includes="TestScript.java"/></copy>
+    <copy todir="${classes}"  preservelastmodified="true" >
+        <fileset dir="${safssource}" includes="*.dat,*ResourceBundle*.properties,*ResourceBundle*.properties.txt"/></copy>
+    <copy todir="${classes}/resources" preservelastmodified="true" >
+        <fileset dir="${safssource}/resources" includes="TestScriptHelper.java,TestScript.rft*"/></copy>
+    <copy todir="${classes}/resources" preservelastmodified="true" >
+        <fileset dir="${safssource}/META-INF" includes="DatastoreDefinition.rftdsd"/></copy>
+    <copy todir="${classes}/org/safs" preservelastmodified="true" >
+        <fileset dir="${safssource}" includes="JavaObjects*.dat,ObjectTypes*.dat,safsparams.dat"/></copy>
+    <copy todir="${classes}/org/safs/jvmagent" preservelastmodified="true" >
+        <fileset dir="${safssource}" includes="JavaObjects*.dat,ObjectTypes*.dat"/></copy>
+    <copy todir="${classes}/org/safs/rational" preservelastmodified="true" >
+        <fileset dir="${safssource}" includes="JavaObjects*.dat,ObjectTypes*.dat"/></copy>
+    <copy todir="${classes}/org/safs/rational" preservelastmodified="true" >
+        <fileset dir="${safssource}/org/safs/rational" includes="*.properties"/></copy>
+    <copy todir="${classes}/org/safs/rational/ft" preservelastmodified="true" >
+        <fileset dir="${safssource}/org/safs/rational/ft" includes="*.dat"/></copy>
+    <copy todir="${classes}/org/safs/rational/flex/custom" preservelastmodified="true" >
+        <fileset dir="${safssource}/org/safs/rational/flex/custom" includes="*.dat"/></copy>
+    <copy todir="${classes}/org/safs/image/icons" preservelastmodified="true" >
+        <fileset dir="${safssource}/org/safs/image/icons" /></copy>
+    <copy todir="${classes}/org/safs/selenium" preservelastmodified="true" >
+        <fileset dir="${safssource}/org/safs/selenium" includes="*.js"/></copy>
+    <copy todir="${classes}/org/safs/selenium/webdriver" preservelastmodified="true" >
+        <fileset dir="${safssource}/org/safs/selenium/webdriver" includes="*.properties"/></copy>
+    <copy todir="${classes}/org/safs/staf/service" preservelastmodified="true" >
+        <fileset dir="${safssource}/org/safs/staf/service" includes="*.properties"/></copy>
+    <copy todir="${classes}/STAF-INF/classes/org/safs/staf/service" preservelastmodified="true" >
+        <fileset dir="${safssource}/org/safs/staf/service" includes="*.properties"/></copy>
+    <copy todir="${classes}/org/safs/model" preservelastmodified="true" >
+        <fileset dir="${safssource}/org/safs/model"/></copy>
+
+    <javac destdir="${classes}"
+           classpath="${safs.classpath}"
+           debug="on"
+           excludes="**/*.sh **/*.bat **/*.vbs **/*.wsf 
+                     **/*.ini **/*.dat **/*.properties 
+                     **/*.htm **/*.html 
+                     **/*.png **/.gif  **/.jpg 
+                     **/*.classpath **/*.project" >
+       <src path="${safssource}" /> 
+       <exclude name="com/jayway/android/robotium/solo/**" />
+       <exclude name="eclipse/**" />
+       <exclude name="install/**" />
+       <exclude name="keywords/**" />
+       <exclude name="META-INF/**" />
+       <exclude name="STAF-INF/**" />
+       <exclude name="org/*.*" />
+       <exclude name="org/safstag/**" />
+       <exclude name="org/safs/abbot/**" />
+       <exclude name="org/safs/jfcunit/**" />
+       <exclude name="org/safs/jmx/**" />
+       <exclude name="org/safs/jrex/**" />
+       <exclude name="org/safs/selenium/install/**" />
+       <exclude name="org/safs/tools/drivers/test/**" />
+       <exclude name="org/safs/tools/engines/test/**" />
+       <exclude name="org/safs/tools/expressions/test/**" />
+    </javac>
+    
+    <rmic base="${safssource}" 
+          classname="org.safs.rmi.engine.ServerImpl" 
+          destdir="${classes}" 
+          classpath="${classes}" />
+    <rmic base="${safssource}" 
+          classname="org.safs.rmi.engine.AgentImpl" 
+          destdir="${classes}" 
+          classpath="${classes}" />
+    <rmic base="${safssource}" 
+          classname="org.safs.selenium.rmi.server.SeleniumServer" 
+          destdir="${classes}" 
+          classpath="${classes}" />
+    <rmic base="${safssource}" 
+          classname="org.safs.selenium.rmi.agent.SeleniumAgent" 
+          destdir="${classes}" 
+          classpath="${classes}" />
+    
+    <copy todir="${classes}/META-INF" preservelastmodified="true" >
+        <fileset dir="${safssource}/META-INF" /></copy>
+    <copy todir="${classes}/STAF-INF" preservelastmodified="true" >
+        <fileset dir="${safssource}/STAF-INF" /> </copy>
+        
+    <copy todir="${classes}/STAF-INF/classes/org/safs/staf/service/map" preservelastmodified="true" >
+        <fileset dir="${classes}/org/safs/staf/service/map" includes="SAFSAppMapServic*.class" /></copy>
+    <copy todir="${classes}/STAF-INF/classes/org/safs/staf/service/var" preservelastmodified="true" >
+        <fileset dir="${classes}/org/safs/staf/service/var" includes="SAFSVariableServic*.class" /></copy>
+    <copy todir="${classes}/STAF-INF/classes/org/safs/staf/service/input" preservelastmodified="true" >
+        <fileset dir="${classes}/org/safs/staf/service/input" includes="SAFSInputServic*.class" /></copy>
+    <copy todir="${classes}/STAF-INF/classes/org/safs/staf/service/logging/v2" preservelastmodified="true" >
+        <fileset dir="${classes}/org/safs/staf/service/logging/v2" includes="SAFSLoggingService.class" /></copy>
+    <copy todir="${classes}/STAF-INF/classes/org/safs/staf/service/logging/v3" preservelastmodified="true" >
+        <fileset dir="${classes}/org/safs/staf/service/logging/v3" includes="SAFSLoggingService3.class" /></copy>   
+  </target>
+
+
+  <!--                                              -->
+  <!--              safsjar                         -->
+  <!-- Create ALL SAFS related JAR files            -->
+  <!--                                              -->
+  <target name="safs.jar" >
+      <delete dir="${safsjars}" />
+      <mkdir dir="${safsjars}" />
+
+      <jar destfile="${safsjars}/safsdroid.jar"
+           manifest="${classes}/META-INF/MANIFEST.DROID.MF"
+           basedir="${classes}"
+           includes="org/safs/android/*.*,
+                     org/safs/JavaSockets*.*,
+                     org/safs/SocketTestRecordHelper.*" />
+
+      <jar destfile="${safsjars}/safsautoandroid.jar"
+           basedir="${classes}"
+           includes="org/safs/android/auto/**,
+                     org/safs/IndependantLog.*,
+                     org/safs/sockets/NamedListener.*,
+                     org/safs/sockets/DebugListener.*,
+                     org/safs/tools/CaseInsensitiveFile.*,
+                     org/safs/tools/MainClass.*,
+                     org/safs/tools/GenericProcessMonitor.*,
+                     org/safs/tools/consoles/GenericProcessConsole.*,
+                     org/safs/tools/consoles/GenericProcessCapture.*,
+                     org/w3c/tools/codec/*.*" />
+       <!-- copy golden safsupdate.jar to safs lib -->
+      <copy todir="${safsjars}" preservelastmodified="true" >
+        <fileset dir="${safslibs}" includes="safsupdate.jar"/></copy>
+
+      <!-- promote as golden copy to ftpserver after testing -->  
+      <jar destfile="${safsjars}/safsupdate_latest.jar"
+           manifest="${classes}/META-INF/MANIFEST.LIBRARYUPDATE.MF"
+           basedir="${classes}"
+           includes="org/safs/IndependantLog.*,
+                     org/safs/sockets/NamedListener.*,
+                     org/safs/sockets/DebugListener.*,
+                     org/safs/install/LibraryUpdate*.*,
+                     org/safs/install/ProgressIndicator*.*,
+                     org/safs/text/FileUtilities.*,
+                     org/safs/SAFSException.*,
+                     org/safs/StringUtils.*,
+                     org/safs/tools/stringutils/StringUtilities.*,
+                     org/safs/tools/MainClass.*,
+                     org/safs/tools/RuntimeDataInterface.*,
+                     org/safs/tools/CaseInsensitiveFile.*" />
+      
+      <jar destfile="${safsjars}/safsselenium.jar"
+           manifest="${classes}/META-INF/MANIFEST.SELENIUM.MF"
+           basedir="${classes}"
+           includes="org/safs/selenium/**" />
+
+      <jar destfile="${safsjars}/safssockets.jar"
+           basedir="${classes}"
+           includes="org/safs/sockets/**" />
+
+      <jar destfile="${safsjars}/safs-remotecontrol.jar"
+           manifest="${classes}/META-INF/MANIFEST.REMOTECONTROL.MF"
+           basedir="${classes}"
+           includes="com/jayway/android/robotium/remotecontrol/solo/**,
+                     com/jayway/android/robotium/remotecontrol/MyTest.*,
+                     com/robotium/solo/**,
+                     org/safs/android/remotecontrol/**" />
+
+      <jar destfile="${safsjars}/robotium-serializable.jar"
+           basedir="${classes}"
+           includes="com/jayway/android/robotium/remotecontrol/*.class" />
+
+      <jar destfile="${safsjars}/robotium-messages.jar"
+           basedir="${classes}"
+           includes="com/jayway/android/robotium/remotecontrol/solo/Message.*,
+                     org/w3c/tools/codec/**" />
+
+      <jar destfile="${safsjars}/safs-messages.jar"
+           basedir="${classes}"
+           includes="org/safs/android/remotecontrol/SAFSMessage.*,
+                     org/safs/text/*KEYS.*,
+                     org/safs/text/ResourceMessageInfo.*,
+                     org/safs/text/CaseInsensitiveHashtable.*,
+                     org/safs/text/*Reader*.*"/>
+
+      <jar destfile="${safsjars}/safs-guiclassdata.jar"
+           basedir="${classes}"
+           includes="org/safs/GUIClassData.*,
+                     org/safs/JavaConstant.*,
+                     org/safs/IndependantLog.*,
+                     org/safs/sockets/NamedListener.*,
+                     org/safs/sockets/DebugListener.*,
+                     org/safs/jvmagent/AgentClassLoader.*,
+                     org/safs/logging/AbstractLogFacility.*,
+                     org/safs/tools/drivers/DriverConstant.*,
+                     org/safs/tools/CaseInsensitiveFile.*"/>
+
+      <jar destfile="${safsjars}/safsios.jar"
+           manifest="${classes}/META-INF/MANIFEST.IOS.MF"
+           basedir="${classes}"
+           includes="org/safs/ios/**"/>
+
+      <jar destfile="${safsjars}/safsrational_ft.jar"
+           manifest="${classes}/META-INF/MANIFEST.FT.MF"
+           basedir="${classes}"
+           includes="TestScript.*,
+                     *.dat,
+                     *ResourceBundle*.properties,
+                     *ResourceBundle*.properties.txt,
+                     resources\TestScrip*.*,
+                     resources\DatastoreDefinition.rftdsd,
+                     org\safs\rational\*.class,
+                     org\safs\rational\*.dat,
+                     org\safs\rational\*.properties,
+                     org\safs\rational\custom\**,
+                     org\safs\rational\flex\*.class,
+                     org\safs\rational\ft\**,
+                     org\safs\rational\logging\**,
+                     org\safs\rational\win\**,
+                     org\safs\rational\wpf\**"/>
+                     
+      <jar destfile="${safsjars}/safsrational_ft_enabler.jar"
+           manifest="${classes}/META-INF/MANIFEST.GENERIC.MF"
+           basedir="${classes}"
+           includes="resources\DatastoreDefinition.rftdsd,
+                     org\safs\rational\ft\**"/>
+
+      <jar destfile="${safsjars}/safsrational_ft_custom.jar"
+           basedir="${classes}"
+           includes="org\safs\rational\flex\custom\**"/>
+
+      <jar destfile="${safsjars}/safsmodel.jar"
+           manifest="${classes}/META-INF/MANIFEST.GENERIC.MF"
+           basedir="${classes}"
+           includes="org\safs\model\**"/>
+
+      <jar destfile="${safsjars}/FilterImageGUI.jar"
+           manifest="${classes}/META-INF/MANIFEST.FILTERIMAGEGUI.MF"
+           basedir="${classes}"
+           includes="org\safs\image\filter\**"/>
+
+      <jar destfile="${safsjars}/safscust.jar"
+           manifest="${classes}/META-INF/MANIFEST.GENERIC.MF"
+           basedir="${classes}"
+           includes="org\safs\custom\**"/>
+
+      <jar destfile="${safsjars}/safsjvmagent.jar"
+           manifest="${classes}/META-INF/MANIFEST.JVMAGENT.MF"
+           basedir="${classes}"
+           includes="safsjvmagent.properties,
+                     org\safs\jvmagent\Bootstrap.*,
+                     org\safs\jvmagent\AgentClassLoader.*,
+                     org\safs\jvmagent\Platform.*"/>
+
+      <jar destfile="${safsjars}/safs.jar"
+           manifest="${classes}/META-INF/MANIFEST.SAFS.MF"
+           basedir="${classes}"
+           includes="*.dat,
+                     *ResourceBundle*.properties,
+                     *ResourceBundle*.properties.txt,
+                     org\safs\*.class,
+                     org\safs\*.dat,
+                     org\safs\control\**,
+                     org\safs\cukes\**,
+                     org\safs\custom\**,
+                     org\safs\image\**,
+                     org\safs\install\**,
+                     org\safs\jvmagent\**,
+                     org\safs\logging\**,
+                     org\safs\natives\**,
+                     org\safs\net\**,
+                     org\safs\reflect\**,
+                     org\safs\rmi\**,
+                     org\safs\robot\**,
+                     org\safs\sockets\**,
+                     org\safs\staf\**,
+                     org\safs\text\**,
+                     org\safs\tools\**,
+                     org\w3c\tools\codec\**,
+                     org\safs\xml\**" />
+
+      <jar destfile="${safsjars}/safsmaps.jar"
+           manifest="${classes}/STAF-INF/classes/META-INF/SAFSAppMapsManifest.mf"
+           basedir="${classes}"
+           includes="STAF-INF\classes\org\safs\staf\service\map\SAFSAppMapServic*.class"/>
+
+      <jar destfile="${safsjars}/safsvars.jar"
+           manifest="${classes}/STAF-INF/classes/META-INF/SAFSVariablesManifest.mf"
+           basedir="${classes}"
+           includes="STAF-INF\classes\org\safs\staf\service\var\SAFSVariableServic*.class"/>
+
+      <jar destfile="${safsjars}/safsinput.jar"
+           manifest="${classes}/STAF-INF/classes/META-INF/SAFSInputManifest.mf"
+           basedir="${classes}"
+           includes="STAF-INF\classes\org\safs\staf\service\input\SAFSInputServic*.class"/>
+
+      <jar destfile="${safsjars}/safslogs.jar"
+           manifest="${classes}/STAF-INF/classes/META-INF/SAFSLoggingManifest.mf"
+           basedir="${classes}"
+           includes="STAF-INF\classes\org\safs\staf\service\logging\v2\SAFSLoggingService.class,
+                     STAF-INF\classes\org\safs\staf\service\logging\v3\SAFSLoggingService3.class" />
+
+      <jar destfile="${safsjars}/safsinstall.jar"
+           manifest="${classes}/STAF-INF/classes/META-INF/SilentInstaller.mf"
+           basedir="${classes}"
+           includes="org\safs\install\*.class
+                     org\safs\natives\*.class 
+                     org\safs\natives\win32\*.class
+                     org\safs\text\FileUtilities.class 
+                     org\safs\text\FileUtilitiesByThirdParty.class 
+                     org\safs\tools\CaseInsensitiveFile.class
+                     org\safs\tools\MainClass.class
+                     org\safs\tools\RuntimeDataInterface.class
+                     org\safs\tools\consoles\Generic*.class 
+                     org\safs\tools\consoles\ProcessCapture.class
+                     org\safs\tools\stringutils\StringUtilities.class
+                     org\safs\IndependantLog.class 
+                     org\safs\SAFSException.class
+                     org\safs\sockets\DebugListener.class 
+                     org\safs\sockets\NamedListener.class
+                     org\safs\android\auto\lib\*Console*.class 
+                     org\safs\android\auto\lib\Process2*.class"/>
+
+      <jar destfile="${safsjars}/robotiumrcinstall.jar"
+           manifest="${classes}/STAF-INF/classes/META-INF/RobotiumInstaller.mf"
+           basedir="${classes}"
+           includes="com\jayway\android\robotium\remotecontrol\install\*.class 
+                     org\safs\install\ProgressIndicator.class
+                     org\safs\text\FileUtilities.class 
+                     org\safs\tools\CaseInsensitiveFile.class
+                     org\safs\tools\MainClass.class
+                     org\safs\tools\RuntimeDataInterface.class
+                     org\safs\tools\stringutils\StringUtilities.class 
+                     org\safs\IndependantLog.class org\safs\SAFSException.class
+                     org\safs\sockets\DebugListener.class 
+                     org\safs\sockets\NamedListener.class
+                     org\safs\android\auto\lib\*Console*.class 
+                     org\safs\android\auto\lib\Process2*.class
+                     org\safs\android\auto\lib\AntTool.class 
+                     org\safs\android\auto\lib\AndroidTools.class" />
+
+      <jar destfile="${safsjars}/safsdebug.jar"
+           basedir="${classes}"
+           includes="*.dat *.properties *.properties.txt org\safs\selenium\*.js" />
+
+      <zip destfile="${safsjars}/_safs-lib-update.zip" >
+           <fileset dir="${safsjars}"
+           includes="FilterImageGUI.jar 
+                     robotium-messages.jar 
+                     robotiumrcinstall.jar 
+                     robotium-serializable.jar 
+                     safs.jar 
+                     safsautoandroid.jar 
+                     safscust.jar 
+                     safsdebug.jar 
+                     safsdroid.jar 
+                     safs-guiclassdata.jar 
+                     safsinput.jar 
+                     safsinstall.jar 
+                     safsios.jar 
+                     safsjvmagent.jar 
+                     safslogs.jar 
+                     safsmaps.jar 
+                     safs-messages.jar 
+                     safsmodel.jar 
+                     safsrational_ft.jar 
+                     safsrational_ft_custom.jar 
+                     safsrational_ft_enabler.jar 
+                     safs-remotecontrol.jar 
+                     safsselenium.jar 
+                     safssockets.jar 
+                     safsupdate.jar                     
+                     safsvars.jar" />
+                     
+       <fileset dir="${safssource}/install/lib/"
+	 	includes="mail.jar" />
+     </zip>
+  </target>
+
+  <target name="_make.safs.dist" >  
+     <delete dir="${safsdist}" />
+     <mkdir  dir="${safsdist}" />
+     
+     <mkdir  dir="${safsdist}/bin" />
+     <mkdir  dir="${safsdist}/data" />
+     <mkdir  dir="${safsdist}/datastorej" />
+     <mkdir  dir="${safsdist}/datastorej_logs" />
+     <mkdir  dir="${safsdist}/datastorej_logs/TestScript" />
+     <mkdir  dir="${safsdist}/doc" />
+     <mkdir  dir="${safsdist}/install" />
+     <mkdir  dir="${safsdist}/jre" />
+     <mkdir  dir="${safsdist}/keywords" />
+     <mkdir  dir="${safsdist}/lib" />
+     <mkdir  dir="${safsdist}/ocr" />
+     <mkdir  dir="${safsdist}/ocr/gocrdata" />
+     <mkdir  dir="${safsdist}/Project" />
+     <mkdir  dir="${safsdist}/Project/Datapool" />
+     <mkdir  dir="${safsdist}/Project/Datapool/Bench" />
+     <mkdir  dir="${safsdist}/Project/Datapool/Dif" />
+     <mkdir  dir="${safsdist}/Project/Datapool/Logs" />
+     <mkdir  dir="${safsdist}/Project/Datapool/Test" />
+     <mkdir  dir="${safsdist}/samples" />
+     <mkdir  dir="${safsdist}/source" />
+     <mkdir  dir="${safsdist}/TCAFS" />
+     <mkdir  dir="${safsdist}/uninstall" />
+  </target>
+  
+  <target name="safs.win.dist" depends="_make.safs.dist" >
+      <ftp action="get" remotedir="${safs.win.java}" server="${ftpserver}" userid="${ftpuserid}" password="${ftppasswrd}"  preservelastmodified="true" >
+          <fileset dir="${safsdist}/jre" includes="JRE*WIN.ZIP" /></ftp>
+          
+      <unzip dest="${safsdist}/jre" >
+          <fileset dir="${safsdist}/jre/" includes="JRE*WIN.ZIP" >
+              <patternset  includes="jre/**" /></fileset></unzip>
+              
+      <delete >
+          <fileset dir="${safsdist}/jre/" includes="JRE*WIN.ZIP" /></delete>
+      
+      <copy todir="${safsdist}/" preservelastmodified="true" >
+          <fileset dir="${safssource}/install/" includes="GNU*.txt
+                                                          safstid.ini
+                                                          Setup.bat
+                                                          WhatsNewInSAFS.htm
+                                                          ${safs.win.releasenotes}" /></copy>
+
+      <copy todir="${safsdist}/bin" preservelastmodified="true" >
+          <fileset dir="${safssource}/install/bin/" includes="*.dll
+                                                              *.vbs
+                                                              *.exe
+                                                              *.bat
+                                                              DisableScreenSaver.wsf" 
+                                                             
+                                                    excludes="SAFSStartup.vbs
+                                                              Uninstall*.vbs
+                                                              ControlStep.bat
+                                                              SAFSJavaHookShutdown.bat
+                                                              SAFSShutdown.bat" /></copy>
+      <copy todir="${safsdist}/datastorej" preservelastmodified="true" >
+          <fileset dir="${safssource}/install/datastorej/" /></copy>
+      
+      <copy todir="${safsdist}/datastorej_logs" preservelastmodified="true" >
+          <fileset dir="${safssource}/install/datastorej_logs/" /></copy>
+
+      <copy todir="${safsdist}/doc/info" preservelastmodified="true" >
+          <fileset dir="${safssource}/install/doc/info/" /></copy>
+
+      <copy todir="${safsdist}/doc/static" preservelastmodified="true" >
+          <fileset dir="${rrafssource}/doc/" includes="*.gif,*.GIF" />
+          <fileset dir="${safssource}/install/doc/static/" /></copy>
+
+      <copy todir="${safsdist}/install" preservelastmodified="true" >
+          <fileset dir="${safssource}/install/install/" />
+          <fileset dir="${safssource}/install/" includes="_Shared*.vbs
+                                                          Setup*README.htm
+                                                          SetupCustomClasspath.wsf
+                                                          SetupRationalClasspath.wsf" 
+                                                
+                                                excludes="SetupSelenium.README.htm
+                                                          SetupSAFS.README.htm
+                                                          SetupRuntime.README.htm" />
+          <fileset dir="${safsjars}" includes="safsinstall.jar" /></copy>
+
+      <copy todir="${safsdist}/keywords" preservelastmodified="true" >
+          <fileset dir="${safssource}/keywords/" /></copy>
+
+      <copy todir="${safsdist}/lib" preservelastmodified="true" >      
+          <fileset dir="${safssource}/org/safs/"    includes="*.dat"/>
+          <fileset dir="${safssource}/install/lib/" includes="clibwrapper*.jar
+                                                              commons-logging-*.jar
+                                                              Dynamic*.*
+                                                              dom4j-*.jar
+                                                              IExplorer*.*
+                                                              java.policy
+                                                              ja*.jar
+                                                              jna*.zip
+                                                              JSTAF*.jar
+                                                              json-*.jar
+                                                              juniversalchardet*.jar
+                                                              neko*.jar
+                                                              platform.zip
+                                                              safsjvmagent.properties
+                                                              mail.jar
+                                                              win32-x86.zip" 
+                                                              
+                                                    excludes="JSTAF3.jar
+                                                              re-sign.jar" />                                                    
+          <fileset dir="${seleniumlibs}" excludes="*-2.37.0.jar" />
+          <fileset dir="${staflibs}"  includes="JSTAF2.jar" />
+          <fileset dir="${safsjars}/" excludes="_safs-lib-update.zip
+                                                robotium-messages.jar
+                                                robotiumrcinstall.jar
+                                                safs-guiclassdata.jar
+                                                safs-messages.jar
+                                                seleniumplus.jar
+                                                SPFilterImageGUI.jar" /></copy>   
+
+      <copy todir="${safsdist}/ocr" preservelastmodified="true" >
+          <fileset dir="${safssource}/install/ocr/" excludes="tessdata.zip"/></copy>
+          
+      <unzip dest="${safsdist}/ocr" >
+          <fileset dir="${safssource}/install/ocr/" includes="tessdata.zip"/></unzip>
+              
+      <copy todir="${safsdist}/Project" preservelastmodified="true" >
+          <fileset dir="${safssource}/install/Project/" excludes="runTIDTEst.rec
+                                                                  Datapool/CheckBoxFunctions.SDD
+                                                                  Datapool/CloseTCAFSApp.SDD
+                                                                  Datapool/ComboBox.SDD
+                                                                  Datapool/ComboEditBox.SDD
+                                                                  Datapool/EditBoxFunctions.SDD
+                                                                  Datapool/ios*.*
+                                                                  Datapool/TCAFSApp.MAP
+                                                                  Datapool/TCAFSCycle.CDD
+                                                                  Datapool/TCAFSTests.STD
+                                                                  Datapool/Runtime/"/></copy>
+
+      <copy todir="${safsdist}/samples/DotNetApp" preservelastmodified="true" >
+          <fileset dir="${safssource}/install/samples/Dotnet/DotNetApp/" /></copy>
+
+      <copy todir="${safsdist}/samples/Droid/"  preservelastmodified="true" >
+          <fileset dir="${safssource}/install/" includes="SetupAndroid.README.htm" /></copy>
+
+      <copy todir="${safsdist}/samples/Droid/SAFSTCPMessenger"  preservelastmodified="true" >
+          <fileset dir="${source}/android/SAFSMessenger/" /></copy>
+
+      <copy todir="${safsdist}/samples/Droid/SAFSTestRunner"  preservelastmodified="true" >
+          <fileset dir="${source}/android/SAFSEngine/" /></copy>
+
+      <copy todir="${safsdist}/samples/Droid/SampleSpinner"  preservelastmodified="true" >
+          <fileset dir="${source}/android/SampleSpinner/" /></copy>
+
+      <copy todir="${safsdist}/samples/Droid/SoloRemoteControl"  preservelastmodified="true" >
+          <fileset dir="${source}/android/SoloRemoteControl/" /></copy>
+
+      <copy todir="${safsdist}/samples/Droid/SAFSTCPMessenger/libs"  preservelastmodified="true" >
+          <fileset dir="${safsjars}" includes="safssockets.jar" /></copy>
+
+      <copy todir="${safsdist}/samples/Droid/SAFSTestRunner/libs"  preservelastmodified="true" >
+          <fileset dir="${safsjars}" includes="safssockets.jar
+                                               robotium-*.jar
+                                               safs-guiclassdata.jar
+                                               safs-messages.jar" /></copy>
+
+      <copy todir="${safsdist}/samples/Droid/SoloRemoteControl/libs"  preservelastmodified="true" >
+          <fileset dir="${safsjars}" includes="safssockets.jar
+                                               robotium-*.jar
+                                               safsautoandroid.jar
+                                               safs-remotecontrol.jar" /></copy>
+
+      <copy todir="${safsdist}/samples/Droid/SoloRemoteControl/src/com/jayway/android/robotium"  preservelastmodified="true" >
+          <fileset dir="${safssource}/com/jayway/android/robotium" includes="**/*.java" /></copy>
+
+      <copy todir="${safsdist}/samples/Droid/SoloRemoteControl/src/com/robotium/solo"  preservelastmodified="true" >
+          <fileset dir="${safssource}/com/robotium/solo/" /></copy>
+
+      <copy todir="${safsdist}/samples/eclipse"  preservelastmodified="true" >
+          <fileset dir="${safssource}/install/samples/eclipse/" />
+          <fileset dir="${safssource}/install/doc/info" includes="UsingJSAFSAutoConfigure.htm" /></copy>
+
+      <mkdir  dir="${safsdist}/samples/eclipse/MyTest/Datapool/Bench" />
+      <mkdir  dir="${safsdist}/samples/eclipse/MyTest/Datapool/Dif" />
+      <mkdir  dir="${safsdist}/samples/eclipse/MyTest/Datapool/Logs" />
+      <mkdir  dir="${safsdist}/samples/eclipse/MyTest/Datapool/Test" />
+
+      <copy todir="${safsdist}/samples/IBT_OCR"  preservelastmodified="true" >
+          <fileset dir="${safssource}/install/samples/IBT_OCR/" />
+          <fileset dir="${safssource}/install/doc/info" includes="SAFSImageBasedRecognition.htm" /></copy>
+
+      <mkdir  dir="${safsdist}/samples/IBT_OCR/Datapool/Dif" />
+      <mkdir  dir="${safsdist}/samples/IBT_OCR/Datapool/Logs" />
+      <mkdir  dir="${safsdist}/samples/IBT_OCR/Datapool/Test" />
+
+      <copy todir="${safsdist}/samples/JavaApp"  preservelastmodified="true" >
+          <fileset dir="${safssource}/install/samples/Java/JavaApp/" /></copy>
+
+      <copy todir="${safsdist}/samples/Log Transforms"  preservelastmodified="true" >
+          <fileset dir="${safssource}/install/samples/Log Transforms/" /></copy>
+
+      <copy todir="${safsdist}/samples/Perl"  preservelastmodified="true" >
+          <fileset dir="${safssource}/install/samples/Perl/" /></copy>
+
+      <copy todir="${safsdist}/samples/Selenium2.0"  preservelastmodified="true" >
+          <fileset dir="${safssource}/install/samples/Selenium2.0/" excludes="doc/" />
+          <fileset dir="${safssource}/install/" includes="SAFSQuickStartSelenium.htm" />
+          </copy>
+      
+      <copy todir="${safsdist}/samples/Selenium2.0/doc"  preservelastmodified="true" >
+          <fileset dir="${safssource}/org/safs/selenium/install/doc/" /></copy>
+      
+      <copy todir="${safsdist}/samples/Selenium2.0/extra"  preservelastmodified="true" >
+          <fileset dir="${safssource}/org/safs/selenium/install/extra/" includes="*.exe" /></copy>
+
+      <mkdir  dir="${safsdist}/samples/Selenium2.0/Datapool/Bench" />
+      <mkdir  dir="${safsdist}/samples/Selenium2.0/Datapool/Dif" />
+      <mkdir  dir="${safsdist}/samples/Selenium2.0/Datapool/Logs" />
+      <mkdir  dir="${safsdist}/samples/Selenium2.0/Datapool/Test" />
+
+      <copy todir="${safsdist}/samples/WScript"  preservelastmodified="true" >
+          <fileset dir="${safssource}/install/samples/WScript/" /></copy>
+      
+      <copy todir="${safsdist}/TCAFS" preservelastmodified="true" >
+          <fileset dir="${tcafssource}/" /></copy>
+
+      <copy todir="${safsdist}/uninstall"  preservelastmodified="true" >
+          <fileset dir="${safssource}/install/uninstall/" /></copy>
+                             
+      <!--                                -->
+      <!--  BUILD the Release ZIP files   -->
+      <!--                                -->
+      
+      <zip destfile="${safsdist}/install/SAFSInstall.ZIP"
+           basedir="${safsdist}"
+           includes="*.htm
+                     *.txt
+                     *.ini
+                     bin/**
+                     data/**
+                     datastorej/**
+                     datastorej_logs/**
+                     doc/**
+                     keywords/**
+                     lib/**
+                     ocr/**
+                     Project/**
+                     samples/**
+                     source/**
+                     TCAFS/**" />
+                
+      <!-- FTP STAF installation binary -->
+      
+      <ftp action="get" remotedir="${staftools}" server="${ftpserver}" userid="${ftpuserid}" password="${ftppasswrd}"  preservelastmodified="true" >
+          <fileset dir="${safsdist}/install" includes="STAF3*win32-NoJVM.exe" /></ftp>
+
+      <!-- Create ReleaseCandidate ZIP   -->
+      
+      <zip destfile="${safsdist}/SAFSWinReleaseCandidate.ZIP"
+           basedir="${safsdist}"
+           includes="*.htm
+                     *.txt
+                     Setup.bat
+                     install/**
+                     uninstall/**
+                     jre/**" />
+   </target>
+   
+   
+   <target name="git.clone.tcafs" description="Clone from GitHub SAFSDEV/TCAFS" >
+       <var name="git.repo.tree" value="${git.wdir.tcafs}" />
+       <var name="git.repo.url" value="${git.repo.tcafs}" />
+       <var name="git.repo.branch" value="${git.branch.tcafs}" />
+       <antcall target="git.repo.clone" />
+   </target>
+
+   <target name="git.clone.core" description="Clone from GitHub SAFSDEV/Core" >
+       <var name="git.repo.tree" value="${git.wdir.core}" />
+       <var name="git.repo.url" value="${git.repo.core}" />
+       <var name="git.repo.branch" value="${git.branch.core}" />
+       <antcall target="git.repo.clone" />
+   </target>
+
+   <target name="git.clone.keywords" description="Clone from GitHub SAFSDEV/keywords" >
+       <var name="git.repo.tree" value="${git.wdir.keywords}" />
+       <var name="git.repo.url" value="${git.repo.keywords}" />
+       <var name="git.repo.branch" value="${git.branch.keywords}" />
+       <antcall target="git.repo.clone" />
+   </target>
+
+   <target name="git.clone.metainf" description="Clone from GitHub SAFSDEV/META-INF" >
+       <var name="git.repo.tree" value="${git.wdir.metainf}" />
+       <var name="git.repo.url" value="${git.repo.metainf}" />
+       <var name="git.repo.branch" value="${git.branch.metainf}" />
+       <antcall target="git.repo.clone" />
+   </target>
+
+   <target name="git.clone.stafinf" description="Clone from GitHub SAFSDEV/STAF-INF" >
+       <var name="git.repo.tree" value="${git.wdir.stafinf}" />
+       <var name="git.repo.url" value="${git.repo.stafinf}" />
+       <var name="git.repo.branch" value="${git.branch.stafinf}" />
+       <antcall target="git.repo.clone" />
+   </target>
+
+   <target name="git.clone.seplus" description="Clone from GitHub SAFSDEV/SeleniumPlus-Plugin" >
+       <var name="git.repo.tree" value="${git.wdir.seplus}" />
+       <var name="git.repo.url" value="${git.repo.seplus}" />
+       <var name="git.repo.branch" value="${git.branch.seplus}" />
+       <antcall target="git.repo.clone" />
+   </target>
+
+   <target name="git.clone.seplus.features" description="Clone from GitHub SAFSDEV/SeleniumPlus-Plugin-Features" >
+       <var name="git.repo.tree" value="${git.wdir.seplus.features}" />
+       <var name="git.repo.url" value="${git.repo.seplus.features}" />
+       <var name="git.repo.branch" value="${git.branch.seplus.features}" />
+       <antcall target="git.repo.clone" />
+   </target>
+
+   <target name="git.clone.droid.remotecontrol" description="Clone from GitHub SAFSDEV/SAFS-Android-Remote-Control" >
+       <var name="git.repo.tree" value="${git.wdir.droid.remotecontrol}" />
+       <var name="git.repo.url" value="${git.repo.droid.remotecontrol}" />
+       <var name="git.repo.branch" value="${git.branch.droid.remotecontrol}" />
+       <antcall target="git.repo.clone" />
+   </target>
+
+   <target name="git.clone.droid.engine" description="Clone from GitHub SAFSDEV/SAFS-Android-Engine" >
+       <var name="git.repo.tree" value="${git.wdir.droid.engine}" />
+       <var name="git.repo.url" value="${git.repo.droid.engine}" />
+       <var name="git.repo.branch" value="${git.branch.droid.engine}" />
+       <antcall target="git.repo.clone" />
+   </target>
+
+   <target name="git.clone.droid.messenger" description="Clone from GitHub SAFSDEV/SAFS-Android-Messenger" >
+       <var name="git.repo.tree" value="${git.wdir.droid.messenger}" />
+       <var name="git.repo.url" value="${git.repo.droid.messenger}" />
+       <var name="git.repo.branch" value="${git.branch.droid.messenger}" />
+       <antcall target="git.repo.clone" />
+   </target>
+
+   <target name="git.clone.droid.sample" description="Clone from GitHub SAFSDEV/SAFS-Android-SampleSpinner" >
+       <var name="git.repo.tree" value="${git.wdir.droid.sample}" />
+       <var name="git.repo.url" value="${git.repo.droid.sample}" />
+       <var name="git.repo.branch" value="${git.branch.droid.sample}" />
+       <antcall target="git.repo.clone" />
+   </target>
+
+</project>

@@ -1,0 +1,65 @@
+
+<!--                                                          -->
+<!-- 2015.08.03  CANAGL  Initial Release                      -->
+<!--                                                          -->
+<project name="boostrap_build" basedir="." >
+<taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
+  
+  <!--                                                -->
+  <!--              _git.checkout                     -->
+  <!--   renamed    _internal.checkout                -->
+  <!--                                                -->
+  <!-- Get/Update all sourcecode from GitHUb          -->
+  <!--                                                -->
+  <target name="bootstrapbuild" depends="git.clone.build" >
+      <move todir="." preservelastmodified="true" >
+          <fileset dir="safsdev.build/safs" includes="*.xml,*.properties"/>
+      </move>
+      <delete dir="safsdev.build" />
+  </target>
+                                           
+  <target name="git.clone.build" description="Clone from GitHub SAFSDEV/build" >
+      <delete dir="build" />
+      <delete dir="safsdev.build" />
+      <var name="git.repo.tree" value="safsdev.build" />
+      <var name="git.repo.url" value="git://github.com/SAFSDEV/build" />
+      <var name="git.repo.branch" value="master" />
+      <antcall target="git.repo.clone" />
+      <delete dir="build" />
+  </target>
+
+  <!--                                                                                      -->
+  <!--                                  git.repo.clone                                      -->
+  <!--                                                                                      -->
+  <!--  Execute a GIT clone specified.                                                      -->
+  <!--                                                                                      -->
+  <!--  Example command-line invocation:                                                    -->
+  <!--                                                                                      -->
+  <!--  git -work-tree source/TCAFS clone git://github.com/SAFSDEV/TCAFS -b master          -->
+  <!--                                                                                      -->
+  <!--  requires: ${git.repo.tree}                                                          -->
+  <!--            ${git.repo.url}                                                           -->
+  <!--            ${git.repo.branch}                                                        -->
+  <!--                                                                                      -->
+  <!--  Which will be used as shown below:                                                  -->
+  <!--                                                                                      -->
+  <!--  git -work-tree ${git.repo.tree} clone git://${git.repo.url} -b ${git.repo.branch}   -->
+  <!--                                                                                      -->
+  <target name="git.repo.clone"                                  
+          description="Clone a Repository from a Git URL" >
+          
+      <exec executable="git" 
+            failifexecutionfails="true"
+            failonerror="true"
+            errorproperty="" >
+            
+          <arg value="--work-tree"           />  
+          <arg value="${git.repo.tree}"      />
+          <arg value="clone"                 />  
+          <arg value="${git.repo.url}" />
+         
+          
+      </exec>
+  </target>
+       
+</project>

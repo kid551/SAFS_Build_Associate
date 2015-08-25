@@ -1,0 +1,213 @@
+
+<!--                                                          -->
+<!-- try to handle release on github                          -->
+<!--                                                          -->
+<project name="git.release" basedir="." >
+  <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
+  <property file="safs.properties" />
+  <property environment="env"/>
+
+  <tstamp>
+      <format property="RELEASE_TAG" pattern="yyyy.MM.dd_HH.mm"/>
+  </tstamp>
+  
+  <!--                                                          -->
+  <!-- create release SAFS on github                            -->
+  <!--                                                          -->
+  <target name="git.release.safs.create" depends="create.safsrelease.json" 
+                                         description="Make SAFS release at GitHub SAFSDEV/Core" >
+      <var name="git.release.json" value="${git.release.safs.json}" />
+      <var name="git.release.url" value="${git.release.safs.url}" />
+      <antcallback target="git.release.create" return="exec.rc, exec.output, exec.error, git.release.id"/>
+      <!-- echo>${exec.output}</echo -->
+      <echo>exec.rc: ${exec.rc}</echo>
+      <!-- echo>exec.error: ${exec.error}</echo -->
+      <echo>git.release.id: ${git.release.id}</echo>
+  </target>
+  
+  <!--                                                          -->
+  <!-- create release SeleniumPlus on github                    -->
+  <!--                                                          -->
+  <target name="git.release.seleniumplus.create" depends="create.seleniumplusrelease.json" 
+                                                 description="Make SeleniumPlus release at GitHub SAFSDEV/SeleniumPlus-Plugin" >
+      <var name="git.release.json" value="${git.release.seleniumplus.json}" />
+      <var name="git.release.url" value="${git.release.seleniumplus.url}" />
+      <antcallback target="git.release.create" return="exec.rc, exec.output, exec.error, git.release.id"/>
+      <!-- echo>${exec.output}</echo -->
+      <echo>exec.rc: ${exec.rc}</echo>
+      <!-- echo>exec.error: ${exec.error}</echo -->
+      <echo>git.release.id: ${git.release.id}</echo>
+  </target>
+	
+  <!--                                                          -->
+  <!-- upload zip to release SAFS on github                     -->
+  <!--                                                          -->
+  <target name="git.release.safs.upload" depends="git.release.safs.create" description="Upload asset to SAFS release at GitHub SAFSDEV/Core">
+      <var name="git.release.uploads.url" value="${git.release.uploads.safs.url}" />
+      <var name="git.release.asset.type" value="${git.release.asset.safs.type}" />
+      <var name="git.release.asset.data" value="${git.release.asset.safs.data}" />
+      <var name="git.release.asset.name" value="${git.release.asset.safs.name}" />
+      <antcall target="git.release.upload.asset" />
+  </target>
+	
+  <!--                                                          -->
+  <!-- upload zip to release SeleniumPlus on github             -->
+  <!--                                                          -->
+  <target name="git.release.seleniumplus.upload" depends="git.release.seleniumplus.create" description="Upload asset to SeleniumPlus release at GitHub SAFSDEV/SeleniumPlus-Plugin" >
+      <var name="git.release.uploads.url" value="${git.release.uploads.seleniumplus.url}" />
+      <var name="git.release.asset.type" value="${git.release.asset.seleniumplus.type}" />
+      <var name="git.release.asset.data" value="${git.release.asset.seleniumplus.data}" />
+      <var name="git.release.asset.name" value="${git.release.asset.seleniumplus.name}" />
+      <antcall target="git.release.upload.asset" />
+  </target>
+
+  <!--                                                          -->
+  <!-- create safsrelease.json for release.                     -->
+  <!--                                                          -->
+  <target name="create.safsrelease.json" description="Make safsrelease.json GitHub SAFSDEV/Core Release" >
+      <echo file="${git.release.safs.json}">
+{
+  "tag_name": "${RELEASE_TAG}",
+  "target_commitish": "master",
+  "name": "SAFS-Win Release Candidate",
+  "body": "Release Candidate README\n\nA release candidate is largely about installing the latest version of supported software \nas much as testing the install and uninstall experience before the official Release. \n\nThe release candidate is generally a fully installable package, but may lack final updated \ndocumentation, some functionality or packaging of some domains (ex: SAFS Android/RobotiumRC),\nbut generally does contain the most up-to-date functionality and libraries of core SAFS. \n\nRelease Candidates are currently being pushed automatically and should become better and \nmore complete with each update. However, due to the automatic nature of the push the \nrelease candidate package is NOT tested prior to the push.\n\nIf you download a release candidate and experience problems with the installation or runtime \nfunctionality please report it via the SAFSDEV Developers:\n\nKnown release-ready packaging:\nCore SAFS updates.\nTCAFS SmartBearTestComplete updates.\nRFT IBM Rational Functional Tester updates.\n\nKnown limitations as of Jan 7, 2014:\nRobotiumRC/SAFS Android support not yet fully packaged and documented for release.\nIncomplete release documentation overall.\n",
+  "draft": false,
+  "prerelease": true
+}
+      </echo>
+  </target>
+
+  <!--                                                          -->
+  <!-- create seleniumplusrelease.json for release.             -->
+  <!--                                                          -->
+  <target name="create.seleniumplusrelease.json" description="Make seleniumplusrelease.json GitHub SAFSDEV/SeleniumPlus-Plugin Release" >
+      <echo file="${git.release.seleniumplus.json}">
+{
+  "tag_name": "${RELEASE_TAG}",
+  "target_commitish": "master",
+  "name": "SeleniumPlus-Win Release Candidate",
+  "body": "*** This is NOT simply an Eclipse Plugin ***\n\nSeleniumPlus is a Selenium WebDriver-enabled version of TestDesigner for Windows.\n\nSelenium by default uses the FireFox browser.\n\nIf you do not have FireFox you can download and install it from: www.mozilla.org\nSelenium 2.46 is delivered with SeleniumPlus.\n\n1. Open the SeleniumPlus.ZIP (or TestDesigner.ZIP) file with WinZip or other appropriate program.\n\n2. Extract the contents of the ZIP file to your desired Working Directory:\n\n    a. This Working Directory is the installation directory where SeleniumPlus will reside permanently.\n    b. SeleniumPlus will NOT be *installed* or moved to some other directory.\n    c. A good standard location to unzip would be C:\\SeleniumPlus.\n\n3. Upon successful extraction, double-click or run Setup.bat in the installation directory.\n\n4. Upon successful installation on Windows:\n\n    a. There should be a SeleniumPlus 2014 Program Group in your Start Menu.\n    b. There should be a new SeleniumPlus shortcut in your installation directory.\n\n**** IT IS RECOMMENDED TO LOGOFF AND THEN LOGON YOUR ****\n**** WINDOWS USER ACCOUNT FOR ALL UPDATES TO COMPLETE. ****\n\n**** A COMPLETE REBOOT OR RESTART IS -NOT- REQUIRED ****\n\n1. To launch the SeleniumPlus Development Environment:\n\n    a. via the Selenium Plus Program Group in the Start Menu:\n\n        i. Launch SeleniumPlus\n\n    b. via the installation directory shortcut:\n\n        i. SeleniumPlus\n\n2. Review *Getting Started* in the Documents folder of the SeleniumPlus Start Menu Program Group, or the *SeleniumPlus* menu item in the Selenium+ -- Documents menu.\n\nUninstall:\n\n1. The SeleniumnPlus 2014 Start Menu Program Group has an *Uninstall* link to perform the uninstall.\n\n2. You can also run the *_Uninstall.wsf* program from the the SeleniumPlus uninstall subdirectory.\n",
+  "draft": false,
+  "prerelease": true
+}
+      </echo>
+  </target>
+
+
+  <!--                                                                                      -->
+  <!--                                  git.release.create                                  -->
+  <!--                                                                                      -->
+  <!--  Execute a post request to create a release on github                                -->
+  <!--  https://developer.github.com/v3/repos/releases/#create-a-release                    -->
+  <!--                                                                                      -->
+  <!--  Example command-line invocation:                                                    -->
+  <!--                                                                                      -->
+  <!--  curl -i -k -H "Content-Type: application/json" -H "Authorization: token OAUTH-TOKEN" -X POST -d @safsrelease.json https://api.github.com/repos/safsdev/core/releases                            -->
+  <!--  curl -i -k -H "Content-Type: application/json" -H "Authorization: token OAUTH-TOKEN" -X POST -d @seleniumplusrelease.json https://api.github.com/repos/safsdev/SeleniumPlus-Plugin/releases     -->
+  <!--                                                                                      -->
+  <!--                                                                                      -->
+  <!--  requires: ${env.git.usertoken}                                                      -->
+  <!--            ${git.release.json}                                                       -->
+  <!--            ${git.release.url}                                                        -->
+  <!--                                                                                      -->
+  <!--  return:                                                                             -->
+  <!--            ${exec.rc}                                                                -->
+  <!--            ${exec.output}                                                            -->
+  <!--            ${exec.error}                                                             -->
+  <!--            ${git.release.id}                                                         -->
+  <!--                                                                                      -->
+  <!--                                                                                      -->
+  <!--  Which will be used as shown below:                                                  -->
+  <!--                                                                                      -->
+  <!--  curl -i -k -H "Content-Type: application/json" -H "Authorization: token ${env.git.usertoken}" -X POST -d @${git.release.json} ${git.release.url}  -->
+  <!--                                                                                      -->
+  <target name="git.release.create" description="Create Git release" >
+      <!-- DO NOT show usertoken in the command line output, only echo following line during debug -->
+      <!-- echo>curl -i -H "Content-Type: application/json" -H "Authorization: token ${env.git.usertoken}" -X POST -d @${git.release.json} ${git.release.url}</echo -->
+  	
+      <exec executable="curl" 
+            failifexecutionfails="true"
+            failonerror="true"
+	    resultproperty="exec.rc"
+      	    outputproperty="exec.output"
+            errorproperty="exec.error" >
+            
+          <arg value="-i"/>
+          <arg value="-k"/>
+          <arg value="-H"/>  
+          <arg value="Content-Type: application/json"/>
+          <arg value="-H"/>
+          <arg value="Authorization: token ${env.git.usertoken}"/>
+          <arg value="-X"/>  
+          <arg value="POST"/>
+          <arg value="-d"/>
+          <arg value="@${git.release.json}"/>
+          <arg value="${git.release.url}"/>
+          
+      </exec>
+
+      <propertyregex property="git.release.id"
+              input="${exec.output}"
+              regexp='"id": (\d+)'
+              select="\1"
+              casesensitive="false" />
+  		
+  </target>
+	
+  <!--                                                                                      -->
+  <!--                          git.release.upload.asset                                    -->
+  <!--                                                                                      -->
+  <!--  Execute a post request to upload asset for a release on github                      -->
+  <!--  https://developer.github.com/v3/repos/releases/#upload-a-release-asset              -->
+  <!--                                                                                      -->
+  <!--  Example command-line invocation:                                                    -->
+  <!--                                                                                      -->
+  <!--  curl -i -k -H "Content-Type: application/zip" -H "Authorization: token OAUTH-TOKEN" -data-binary @path/to/SAFSWinReleaseCandidate.ZIP -X POST https://uploads.github.com/repos/safsdev/core/releases/1628246/assets?name=SAFSWinReleaseCandidate.ZIP                  -->
+  <!--  curl -i -k -H "Content-Type: application/zip" -H "Authorization: token OAUTH-TOKEN" -data-binary @path/to/SeleniumPlusReleaseCandidate.ZIP -X POST https://uploads.github.com/repos/safsdev/SeleniumPlus-Plugin/releases/1628304?name=SeleniumPlusReleaseCandidate.ZIP     -->
+  <!--                                                                                      -->
+  <!--  requires: ${env.git.usertoken}                                                      -->
+  <!--            ${git.release.id}                                                         -->
+  <!--            ${git.release.uploads.url}                                                -->
+  <!--            ${git.release.asset.data}                                                 -->
+  <!--            ${git.release.asset.type}                                                 -->
+  <!--            ${git.release.asset.name}                                                 -->
+  <!--            ${git.release.asset.label} not used yet                                   -->
+  <!--                                                                                      -->
+  <!--  return:                                                                             -->
+  <!--            ${exec.rc}                                                                -->
+  <!--            ${exec.output}                                                            -->
+  <!--            ${exec.error}                                                             -->	
+  <!--                                                                                      -->
+  <!--  Which will be used as shown below:                                                  -->
+  <!--                                                                                      -->
+  <!--  curl -i -H "Content-Type: ${git.release.asset.type}" -H "Authorization: token ${env.git.usertoken}" -data-binary @${git.release.asset.data} -X POST ${git.release.uploads.url}/${git.release.id}/assets?name=${git.release.asset.name}&label=${git.release.asset.label}  -->
+  <!--                                                                                      -->
+  <target name="git.release.upload.asset" description="Upload asset for a Git release" >
+      <!-- DO NOT show usertoken in the command line output, only echo following line during debug -->
+      <!--echo>curl -i -k -u ${git.username} -H "Content-Type: ${git.release.asset.type}" -H "Authorization: token ${env.git.usertoken}" -data-binary @${git.release.asset.data} -X POST ${git.release.uploads.url}/${git.release.id}/assets?name=${git.release.asset.name}</echo-->
+      <echo>git.release.id: ${git.release.id}</echo>
+  	
+      <exec executable="curl" 
+            failifexecutionfails="true"
+            failonerror="true"
+  	    resultproperty="exec.rc"
+  	    outputproperty="exec.output"
+            errorproperty="exec.error" >
+            
+          <arg value="-i"/>
+          <arg value="-k"/>
+          <arg value="-H"/>
+          <arg value="Content-Type: ${git.release.asset.type}"/>
+          <arg value="-H"/>
+          <arg value="Authorization: token ${env.git.usertoken}"/>
+          <arg value="--data-binary"/>  
+          <arg value="@${git.release.asset.data}"/>  
+          <arg value="-X"/>  
+          <arg value="POST"/>
+          <arg value="${git.release.uploads.url}/${git.release.id}/assets?name=${git.release.asset.name}"/>
+
+      </exec>
+
+  </target>
+       
+</project>

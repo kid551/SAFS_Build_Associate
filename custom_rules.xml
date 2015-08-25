@@ -1,0 +1,240 @@
+<?xml version="1.0"?>
+<project name="Custom build xml" basedir=".">
+<taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
+
+<!--                                                         -->
+<!--                Upload SAFS & SeleniumPlus               -->
+<!--    	   Update Assets to sourceforge		     -->
+<!--                                                         -->
+
+<property name="dir.updatesite" value="updatesite"/>
+<property name="dir.dist" value="dist"/>
+<property name="dir.lib" value="lib"/>
+<property name="dir.libs" value="libs"/>
+<property name="dir.selenium" value="libs/selenium"/>
+<property name="dir.plugin" value="plugin"/>
+<property name="dir.release" value="release"/>
+<property name="dir.latest" value="latest"/>
+<property name="dir.safsjars" value="safsjars"/>
+
+<property name="safs.zip.lib" value="SAFS.LIB.UPDATE.ZIP"/>
+<property name="safs.zip.release" value="SAFSWinReleaseCandidate.ZIP"/>
+<property name="safs.zip._lib" value="_safs-lib-update.zip" />
+
+<property name="selenium.zip.plugin" value="SEPLUS.PLUGIN.UPDATE.ZIP"/>
+<property name="selenium.zip.lib" value="SEPLUS.LIB.UPDATE.ZIP"/>
+<property name="selenium.zip.designer" value="TestDesigner.ZIP"/>
+<property name="selenium.zip.release" value="SeleniumPlusReleaseCandidate.ZIP"/>
+<property name="selenium.jar.plugin" value="Seleniumplus_plugin_1.0.0.201312102336.jar"/>
+<property name="selenium.zip._lib" value="_seleniumplus-lib-update.zip" />
+
+<property name="dir.temp" value="temp" />
+
+<!--                                                         -->
+<!--                    PREWORK                              -->
+<!--      Prepare Update Info and Directories		     -->
+<!--                                                         -->
+
+<target name="prework" >
+<delete dir="${dir.updatesite}" />
+<mkdir dir="${dir.updatesite}/${dir.lib}" /> 
+<mkdir dir="${dir.updatesite}/${dir.plugin}" /> 
+<mkdir dir="${dir.updatesite}/${dir.release}" /> 
+
+<tstamp>
+  <format property="build.date" pattern="MM-dd-yyyy" />
+  <format property="build.time" pattern="HHmmss" />
+</tstamp>
+
+<mkdir dir="${dir.updatesite}/${dir.lib}/${build.date}_${build.time}" />
+<mkdir dir="${dir.updatesite}/${dir.plugin}/${build.date}_${build.time}" />
+<mkdir dir="${dir.updatesite}/${dir.release}/${build.date}_${build.time}" />
+<mkdir dir="${dir.updatesite}/${dir.lib}/${dir.latest}" />
+<mkdir dir="${dir.updatesite}/${dir.plugin}/${dir.latest}" />
+<mkdir dir="${dir.updatesite}/${dir.release}/${dir.latest}" />
+
+</target>
+
+<!--                                                         -->
+<!--                 SAFS LIB.UPDATE.ZIP                     -->
+<!--    	 Prepare ZIP files for Upload		     -->
+<!--                                                         -->
+
+<target name="safs.lib.update.zip" depends="prework">
+	
+    <mkdir dir="${dir.temp}/lib" />
+    <mkdir dir="${dir.temp}/samples/Selenium2.0/extra" />
+
+    <!-- safs lib files -->
+    <unzip src="${dir.safsjars}/${safs.zip._lib}" dest="${dir.temp}/lib" />
+    
+    
+    <!-- copy selenium stuff -->
+    <timestampselector property="sel.latest.modified">
+  	<path>
+    		<fileset dir="${dir.selenium}">
+      		<include name="selenium-server-standalone*" />
+    		</fileset>
+  	</path>
+    </timestampselector>
+    
+    <copy file="${sel.latest.modified}" todir="${dir.temp}/lib" preservelastmodified="true" />
+    <copy file="${dir.selenium}/SeInterpreter.jar" todir="${dir.temp}/lib" preservelastmodified="true" />	
+    <copy file="${dir.selenium}/chromedriver.exe" todir="${dir.temp}/samples/Selenium2.0/extra" preservelastmodified="true" />
+    <copy file="${dir.selenium}/IEDriverServer.exe" todir="${dir.temp}/samples/Selenium2.0/extra" preservelastmodified="true" />
+    
+    <zip destfile="${dir.updatesite}/${dir.lib}/${dir.latest}/${safs.zip.lib}"
+         basedir="${dir.temp}"
+    />	
+
+    <copy file="${dir.updatesite}/${dir.lib}/${dir.latest}/${safs.zip.lib}" 
+    	  tofile="${dir.updatesite}/${dir.lib}/${build.date}_${build.time}/${safs.zip.lib}" 
+    	  preservelastmodified="true"/>
+
+    <delete dir="${dir.temp}" />  
+   
+    <!--                  -->
+    <!-- Release zip file -->
+    <!--                  -->
+
+    <copy file="${dir.dist}/${safs.zip.release}"
+          tofile="${dir.updatesite}/${dir.release}/${dir.latest}/${safs.zip.release}" 
+          preservelastmodified="true"/>
+
+    <copy file="${dir.updatesite}/${dir.release}/${dir.latest}/${safs.zip.release}"
+          tofile="${dir.updatesite}/${dir.release}/${build.date}_${build.time}/${safs.zip.release}" 
+          preservelastmodified="true"/>
+          
+</target>
+
+
+<!--                                                         -->
+<!--             SeleniumPlus LIB.UPDATE.ZIP                 -->
+<!--    	 Prepare ZIP files for Upload		     -->
+<!--                                                         -->
+
+<target name="selenium.lib.update.zip" depends="prework">
+	
+    <mkdir dir="${dir.temp}/libs" />
+    <mkdir dir="${dir.temp}/extra" />
+    <mkdir dir="${dir.temp}/Java64" />
+
+    <!-- safs lib files -->
+    <unzip src="${dir.safsjars}/${selenium.zip._lib}" dest="${dir.temp}/libs" />
+    
+    
+    <!-- copy selenium stuff -->
+    <timestampselector property="sel.latest.modified">
+  	<path>
+    		<fileset dir="${dir.selenium}">
+      		<include name="selenium-server-standalone*" />
+    		</fileset>
+  	</path>
+    </timestampselector>
+    
+    <copy todir="${dir.temp}/Java64" preservelastmodified="true" >
+	<fileset dir="${dir.dist}/Java64" includes="**" />
+    </copy>
+    <copy file="${sel.latest.modified}" todir="${dir.temp}/libs" preservelastmodified="true" />
+    <copy file="${dir.selenium}/SeInterpreter.jar" todir="${dir.temp}/libs" preservelastmodified="true" />	
+    <copy file="${dir.selenium}/chromedriver.exe" todir="${dir.temp}/extra" preservelastmodified="true" />
+    <copy file="${dir.selenium}/IEDriverServer.exe" todir="${dir.temp}/extra" preservelastmodified="true" />
+    
+    <zip destfile="${dir.updatesite}/${dir.lib}/${dir.latest}/${selenium.zip.lib}"
+         basedir="${dir.temp}"
+    />	
+
+    <copy file="${dir.updatesite}/${dir.lib}/${dir.latest}/${selenium.zip.lib}" 
+    	  tofile="${dir.updatesite}/${dir.lib}/${build.date}_${build.time}/${selenium.zip.lib}" 
+    	  preservelastmodified="true"/>
+
+    <delete dir="${dir.temp}" />  
+   
+
+    <!--                    -->
+    <!--  Plugin zip files  -->
+    <!--                    -->
+
+    <zip destfile="${dir.updatesite}/${dir.plugin}/${dir.latest}/${selenium.zip.plugin}">
+    	<fileset dir="${dir.safsjars}" 
+    	includes="${selenium.jar.plugin}"/>
+    </zip>
+
+    <copy file="${dir.updatesite}/${dir.plugin}/${dir.latest}/${selenium.zip.plugin}" 
+    	  tofile="${dir.updatesite}/${dir.plugin}/${build.date}_${build.time}/${selenium.zip.plugin}" 
+    	  preservelastmodified="true"/>
+    		
+    <!--                  -->
+    <!-- Release zip file -->
+    <!--                  -->
+
+    <copy file="${dir.dist}/${selenium.zip.designer}"
+          tofile="${dir.updatesite}/${dir.release}/${dir.latest}/${selenium.zip.release}" 
+          preservelastmodified="true"/>
+
+    <copy file="${dir.updatesite}/${dir.release}/${dir.latest}/${selenium.zip.release}"
+          tofile="${dir.updatesite}/${dir.release}/${build.date}_${build.time}/${selenium.zip.release}" 
+          preservelastmodified="true"/>
+          
+</target>
+
+<!--                                                         -->
+<!--                  SAFS SOURCEFORGE.UPLOAD                -->
+<!--    	             Upload	         	     -->
+<!--                                                         -->
+
+<target name="safs.sourceforge.upload" depends="safs.lib.update.zip" >
+  
+  <scp
+   	trust="true"
+   	todir="dharmesh4@frs.sourceforge.net:/home/frs/project/safsdev/SAFS Updates/LibraryUpdates/" 
+   	keyfile="c:/users/dhrajp/ssh/id_rsa"
+   	preservelastmodified="true"
+   	sftp="true">   	
+   	<fileset dir="${dir.updatesite}/${dir.lib}"/>
+  </scp>
+  <scp
+     	trust="true"
+     	todir="dharmesh4@frs.sourceforge.net:/home/frs/project/safsdev/SAFS Win/ReleaseCandidates/" 
+     	keyfile="c:/users/dhrajp/ssh/id_rsa"
+     	preservelastmodified="true"
+     	sftp="true">   	
+     	<fileset dir="${dir.updatesite}/${dir.release}"/>
+  </scp>
+	
+</target>
+
+<!--                                                         -->
+<!--           SeleniumPlus SOURCEFORGE.UPLOAD               -->
+<!--    	           Upload	         	     -->
+<!--                                                         -->
+
+<target name="selenium.sourceforge.upload" depends="selenium.lib.update.zip" >
+  
+  <scp
+   	trust="true"
+   	todir="dharmesh4@frs.sourceforge.net:/home/pfs/project/safsdev/SeleniumPlusUpdates/LibraryUpdates/" 
+   	keyfile="c:/users/dhrajp/ssh/id_rsa"
+   	preservelastmodified="true">   	
+   	<fileset dir="${dir.updatesite}/${dir.lib}"/>
+  </scp>
+  <scp
+     	trust="true"
+     	todir="dharmesh4@frs.sourceforge.net:/home/pfs/project/safsdev/SeleniumPlusUpdates/PlugInUpdates/" 
+     	keyfile="c:/users/dhrajp/ssh/id_rsa"
+     	preservelastmodified="true">   	
+     	<fileset dir="${dir.updatesite}/${dir.plugin}"/>
+  </scp>
+  <scp
+     	trust="true"
+     	todir="dharmesh4@frs.sourceforge.net:/home/frs/project/safsdev/SeleniumPlus Win/Release Candidates/" 
+     	keyfile="c:/users/dhrajp/ssh/id_rsa"
+     	preservelastmodified="true"
+     	sftp="true">   	
+     	<fileset dir="${dir.updatesite}/${dir.release}"/>
+  </scp>
+	
+</target>
+
+	
+</project>

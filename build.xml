@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!-- 2014.08.15  CANAGL  Initial Release                          -->
+
+<project name="SAFSDEV Ant Builds" basedir=".">
+  
+  <mkdir dir="libs" /> 
+  
+  <property file="safs.properties" />
+  <property file="selenium.properties" />
+  <import   file="bootstrap.build.xml" />
+  <import   file="safs.build.xml" />
+  <import   file="selenium.build.xml" />
+  <import   file="custom_rules.xml" optional="true" />
+  
+  <!--                                              -->
+  <!--             safs.win.prepare                 -->
+  <!--  do cvs.checkout, safs.compile, safs.jar     -->
+  <!--                                              -->
+  <target name="safs.win.prepare" depends="cvs.checkout,
+                                           safs.compile,
+                                           safs.jar,
+                                           seleniumplus.jar" />
+  
+  <!--                                                         -->
+  <!--                    safs.win.build                       -->
+  <!--          do safs.win.prepare, safs.win.dist             -->
+  <!--                                                         -->
+  <target name="safs.win.build" depends="safs.win.prepare,
+                                         safs.win.dist" />
+
+  <!--                                                         -->
+  <!--                selenium.win.plugin                      -->
+  <!--     do    safs.win.prepare, selenium.plugin.build       -->
+  <!--                                                         -->
+  <target name="selenium.win.plugin" depends="safs.win.prepare,
+                                              selenium.plugin.build" />
+                                               
+  <!--                                                         -->
+  <!--                selenium.win.build                       -->
+  <!--     do    safs.win.prepare, seleniumplus.win.dist       -->
+  <!--                                                         -->
+  <target name="selenium.win.build" depends="selenium.win.plugin,
+                                             seleniumplus.win.dist" />
+                                             
+  <target name="devbuild" depends="_copy.files,safs.compile,
+                                   safs.jar,
+                                   seleniumplus.jar" />
+</project>  

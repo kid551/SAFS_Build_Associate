@@ -1,0 +1,188 @@
+
+<!--                                                             -->
+<!-- 2014.08.15  CANAGL  Initial Release                         -->
+<!-- 2014.08.19  CANAGL  Selenium Include for build.xml Include  -->
+<!-- 2014.11.20  CANAGL  Add OCR Support back into distribution  -->
+<!--                                                             -->
+<project name="selenium_build" basedir="." >
+  
+  <!--                                              -->
+  <!--              seleniumplusjar                 -->
+  <!-- Create ALL SELENIUMPLUS related JAR files    -->
+  <!--                                              -->
+  <target name="seleniumplus.jar" >
+      
+      <jar destfile="${safsjars}/SPFilterImageGUI.jar"
+           manifest="${classes}/META-INF/MANIFEST.SPFILTERIMAGEGUI.MF"
+           basedir="${classes}/"
+           includes="org/safs/image/filter/**" />
+
+      <jar destfile="${safsjars}/seleniumplus.jar"      
+           manifest="${classes}/META-INF/MANIFEST.SELENIUMPLUS.MF"
+           basedir="${classes}"
+           includes="org/safs/selenium/**
+                     org\safs\sockets\DebugListener.class 
+                     org\safs\sockets\NamedListener.class
+		     org\safs\android\auto\lib\*Console*.class 
+		     org\safs\android\auto\lib\Process2*.class
+		     org\safs\model\** 
+		     org\safs\custom\**
+		     *.dat 
+		     *ResourceBundle*.properties 
+		     *ResourceBundle*.properties.txt  
+		     org\safs\*.class 
+		     org\safs\*.dat
+		     org\safs\control\**
+		     org\safs\custom\**
+		     org\safs\image\**
+		     org\safs\install\**
+		     org\safs\jvmagent\**
+		     org\safs\logging\**
+		     org\safs\natives\**
+		     org\safs\reflect\**
+		     org\safs\robot\**
+		     org\safs\staf\**
+		     org\safs\text\**
+		     org\safs\tools\**
+		     org\safs\rmi\engine\**
+		     org\w3c\tools\codec\**
+      	 	 org\safs\net\**
+		     org\safs\xml\**"
+                     
+           excludes="org/safs/selenium/install/
+                     org/safs/model/examples/
+                     org/safs/selenium/SeleniumProcessContainer/
+                     org/safs/selenium/webdriver/lib/test/" />
+
+      <jar jarfile="${safsjars}/seleniumplus.jar" update="true"   
+           basedir="${safssource}"
+           includes="org/safs/selenium/**/*.java" 
+           excludes="org/safs/selenium/install/
+                     org/safs/selenium/webdriver/lib/test/" />
+      
+      <!-- copy file="${safsjars}/seleniumplus.jar" tofile="${safsjars}/selenium-plus-1.0.jar"  preservelastmodified="true" / -->
+        
+      <zip destfile="${safsjars}/_seleniumplus-lib-update.zip">
+           
+           <fileset dir="${safsjars}"
+              	includes="SPFilterImageGUI.jar 
+			     seleniumplus.jar
+			     safsinput.jar 
+			     safslogs.jar 
+			     safsmaps.jar 
+			     safsupdate.jar
+			     safsvars.jar" />
+	 <fileset dir="${safssource}/install/lib/"
+	 	includes="mail.jar" />
+      </zip>
+  </target>
+  
+  <target name="_make.sp.dist" >  
+     <delete dir="${seleniumdist}" />
+     <mkdir dir="${seleniumdist}" />
+     <mkdir dir="${seleniumdist}/extra/automation/ocr/gocrdata" />
+     <mkdir dir="${seleniumdist}/libs" />
+     <mkdir dir="${seleniumdist}/Java" />
+     <mkdir dir="${seleniumdist}/Java64" />
+     <mkdir dir="${seleniumdist}/eclipse" />
+  </target>
+  
+  <target name="seleniumplus.win.dist" depends="_make.sp.dist" >
+
+      <ftp action="get" remotedir="${sp.win.java}" server="${ftpserver}" userid="${ftpuserid}" password="${ftppasswrd}"  preservelastmodified="true" >
+          <fileset dir="${seleniumdist}/Java" includes="JDK*WIN.ZIP" /></ftp>
+      <ftp action="get" remotedir="${sp.win.java}" server="${ftpserver}" userid="${ftpuserid}" password="${ftppasswrd}"  preservelastmodified="true" >
+          <fileset dir="${seleniumdist}/Java64" includes="JRE*64*WIN.ZIP" /></ftp>
+      <ftp action="get" remotedir="${sp.win.eclipse}" server="${ftpserver}" userid="${ftpuserid}" password="${ftppasswrd}"  preservelastmodified="true" >
+          <fileset dir="${seleniumdist}/eclipse" includes="*WIN.ZIP" /></ftp>
+      <ftp action="get" remotedir="${ocrtools}/bin/" server="${ftpserver}" userid="${ftpuserid}" password="${ftppasswrd}"  preservelastmodified="true" >
+          <fileset dir="${seleniumdist}/extra/automation/bin/" /></ftp>
+      <ftp action="get" remotedir="${ocrtools}/ocr/" server="${ftpserver}" userid="${ftpuserid}" password="${ftppasswrd}"  preservelastmodified="true" >
+          <fileset dir="${seleniumdist}/extra/automation/ocr/" /></ftp>
+      <unzip dest="${seleniumdist}/Java/" >
+          <fileset dir="${seleniumdist}/Java/" includes="JDK*.ZIP"/>
+      </unzip>
+      <unzip dest="${seleniumdist}/" >
+          <fileset dir="${seleniumdist}/Java64/" includes="JRE*_64_WIN.ZIP"/>
+      </unzip>
+      <unzip dest="${seleniumdist}/eclipse/" >
+          <fileset dir="${seleniumdist}/eclipse/" includes="*.ZIP"/>
+      </unzip>
+      <delete >
+          <fileset dir="${seleniumdist}/Java/" includes="JDK*WIN.ZIP" />
+	  <fileset dir="${seleniumdist}/Java64/" includes="JRE*_64_WIN.ZIP" />
+          <fileset dir="${seleniumdist}/eclipse/" includes="*WIN.ZIP" />
+      </delete>
+      <copy todir="${seleniumdist}/eclipse/plugins"  preservelastmodified="true" >
+          <fileset dir="${safsjars}" includes="Seleniumplus_plugin*.jar" /></copy>
+      <copy todir="${seleniumdist}/"  preservelastmodified="true" >
+          <fileset dir="${safssource}/org/safs/selenium/install/" 
+                   excludes="eclipse.ini
+                             extra/Debug*.bat
+                             extra/STAF*.bat
+                             sample/
+                             buildTestDesigner*.BAT" /></copy>
+                             
+      <copy todir="${seleniumdist}/libs"  preservelastmodified="true" >
+          <fileset dir="${seleniumlibs}"  excludes="*-2.37.0.jar
+						    *.exe"/>
+          <fileset dir="${safsjars}/" includes="safsinput.jar
+                                                safslogs.jar
+                                                safsmaps.jar
+                                                safsupdate.jar
+                                                safsvars.jar
+                                                seleniumplus*.jar
+                                                SPFilterImage*.jar" />
+          <fileset dir="${safssource}/install/lib/" includes="commons-logging-*.jar
+                                                              ja*.jar
+                                                              JSTAFEmbedded.jar
+                                                              json-*.jar
+                                                              juniversalchardet*.jar
+                                                              jna.zip
+                                                              mail.jar
+                                                              platform.zip
+                                                              win32-x86.zip" />
+      </copy>
+      <copy todir="${seleniumdist}/extra"  preservelastmodified="true" >
+	 <fileset dir="${seleniumlibs}/" includes="*.exe" />
+      </copy>
+      <!-- Stop distributing due to sel-ser-stand.jar covers all jars 
+      <unzip dest="${seleniumdist}/libs/" >
+          <patternset>
+             <include name="selenium-*/libs/*.jar" />
+          </patternset>
+          <fileset dir="${seleniumdist}/libs/"
+                   includes="selenium-java-*.zip" />
+          <mapper type="flatten" />
+      </unzip>
+      -->
+      <zip destfile="${seleniumdist}/TestDesigner.ZIP"
+           basedir="${seleniumdist}"
+           includes="Setup.bat
+                     InstallInstructions.txt
+                     libs/**
+                     install/**
+                     uninstall/**
+                     Java/**
+		     Java64/**
+                     extra/**
+                     eclipse/**
+                     doc/**" />
+      
+  </target>
+
+  <target name="selenium.plugin.build" >
+      <java jar="${ECLIPSEJARS}/org.eclipse.equinox.launcher_1.3.0.v20130327-1440.jar"
+            fork="true"
+            output="${basedir}/selenium.plugin.build.log" >
+            <sysproperty key="ECLIPSEJARS" value="${ECLIPSEJARS}" />
+            <sysproperty key="SAFSJARS" value="${basedir}/safsjars" />
+            <arg value="-application" /> 
+            <arg value="org.eclipse.ant.core.antRunner" />
+            <arg value="-buildfile" />
+            <arg value="${basedir}/source/common/eclipse/plugins/Seleniumplus_plugin/build.xml" />
+            <arg value="build.update.jar" />
+      </java>
+  </target>
+
+</project>  
